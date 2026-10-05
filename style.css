@@ -45,6 +45,14 @@ select{
     margin-top: -2px;
 }
 
+#shuffle_bt{
+    padding: 3px;
+    background-color: #FFD36A;
+    border-radius: 3px;
+    border: none;
+    margin-top: -2px;
+}
+
 .main_board{
     display: flex;
     justify-content: center;
@@ -81,4 +89,10 @@ select{
 
 .tile.empty{
     visibility: hidden;
+}
+
+.tile img{
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
 }
