@@ -5,13 +5,20 @@ const paddingRows = rows +2;
 const paddingCols = cols + 2;
 let tilesInput = [];
 let selectedIndex= null;
+const num_types = 21;
+const scoreId = document.getElementById("score");
+const timeId = document.getElementById("time_left");
+let score = 0;
+let total_time;
+let time_counting = null;
 const boardPikachu = document.getElementById('board');
 
 function genTiles(){
     const tiles = [];
     for(let i = 1; i <= totals / 2; i++) {
-        tiles.push(i);
-        tiles.push(i);
+        const pokemonId = Math.floor(Math.random() * num_types)+1;
+        tiles.push(pokemonId);
+        tiles.push(pokemonId);
     }
     tiles.sort(() => Math.random() - 0.5);
     const board = [];
@@ -46,6 +53,8 @@ function handleTileClick(currentTile, currentIndex){
             tilesInput[firstIndex] =0;
             tilesInput[currentIndex] = 0;
             selectedIndex = null;
+            score +=5;
+            currentScore();
             drawTiles();
         } else {
             selectedIndex = currentIndex;
@@ -74,7 +83,9 @@ function drawTiles(){
         } else {
             tile.dataset.type = value;
             tile.dataset.index = i;
-            tile.innerText = value;
+            const img = document.createElement("img");
+            img.src = `assets/${value}.png`;
+            tile.appendChild(img);
             if (i === selectedIndex){
                 tile.classList.add("active");
             }
@@ -85,8 +96,56 @@ function drawTiles(){
     }
 }
 
+function currentScore(){
+    scoreId.innerText = `Your score: ${score}`;
+}
+
+function currentTime(){
+    const minutes = Math.floor(total_time/60);
+    const second = total_time % 60;
+    timeId.innerText = `Time left: ${minutes}m ${second}s`;
+}
+
+function startCounting(){
+    if(time_counting){
+        clearInterval(time_counting);
+    }
+    total_time = 600;
+    currentTime();
+    time_counting = setInterval(() => {
+        total_time--;
+        currentTime();
+    }, 1000)
+}
+
+function shuffleGame(){
+    let shuffleIndex= [];
+    let shuffleValue = [];
+    for (let i = 0; i < tilesInput.length; i++) {
+        const r = Math.floor(i / paddingCols);
+        const c = i % paddingCols;
+        if (r === 0 || r === paddingRows -1 || c ===0 || c === paddingCols -1){
+            continue;
+        }
+        if (tilesInput[i] !== 0){
+            shuffleIndex.push(i);
+            shuffleValue.push(tilesInput[i]);
+        }
+    }
+    shuffleValue.sort(() => Math.random() - 0.5);
+    for (let j = 0; j < shuffleIndex.length; j++){
+        const index = shuffleIndex[j];
+        tilesInput[index] = shuffleValue[j];
+    }
+    selectedIndex = null;
+    drawTiles();
+}
+
 function restartGame() {
     selectedIndex = null;
+    score = 0;
+    currentScore();
+    startCounting();
     tilesInput = genTiles();
     drawTiles();
 }
@@ -152,10 +211,10 @@ function checkZandU(r1, c1, r2, c2){
 }
 
 function canRemove(i1, i2){
-    const r1 = Math.floor(i1 / paddingCols) +1;
-    const c1 = i1 % paddingCols +1;
-    const r2 = Math.floor(i2 / paddingCols) +1;
-    const c2 = i2 % paddingCols +1;
+    const r1 = Math.floor(i1 / paddingCols) ;
+    const c1 = i1 % paddingCols ;
+    const r2 = Math.floor(i2 / paddingCols);
+    const c2 = i2 % paddingCols;
     if (checkLine(r1, c1, r2, c2)) return true;
     if (checkL(r1, c1, r2, c2)) return true;
     if (checkZandU(r1, c1, r2, c2)) return true;
@@ -164,5 +223,8 @@ function canRemove(i1, i2){
 
 const restartBt = document.getElementById('restart_bt');
 restartBt.addEventListener('click', restartGame);
+
+const shuffleBt = document.getElementById('shuffle_bt');
+shuffleBt.addEventListener('click', shuffleGame);
 
 restartGame();
