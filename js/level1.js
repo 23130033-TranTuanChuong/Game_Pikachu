@@ -6,11 +6,13 @@ const paddingCols = cols + 2;
 let tilesInput = [];
 let selectedIndex= null;
 const num_types = 21;
-const scoreId = document.getElementById("score");
-const timeId = document.getElementById("time_left");
 let score = 0;
 let total_time;
 let time_counting = null;
+let currentLevel =1;
+const levelId = document.getElementById("level_option");
+const scoreId = document.getElementById("score");
+const timeId = document.getElementById("time_left");
 const boardPikachu = document.getElementById('board');
 
 function genTiles(){
@@ -36,36 +38,6 @@ function genTiles(){
     return board;
 }
 
-function handleTileClick(currentTile, currentIndex){
-    if(selectedIndex === currentIndex){
-        currentTile.classList.remove("active");
-        selectedIndex = null;
-        return;
-    }
-    if(selectedIndex === null){
-        selectedIndex = currentIndex;
-        currentTile.classList.add("active");
-        return;
-    }
-    const firstIndex = selectedIndex;
-    if(tilesInput[firstIndex] === tilesInput[currentIndex]){
-        if(canRemove(firstIndex, currentIndex)){
-            tilesInput[firstIndex] =0;
-            tilesInput[currentIndex] = 0;
-            selectedIndex = null;
-            score +=5;
-            currentScore();
-            drawTiles();
-        } else {
-            selectedIndex = currentIndex;
-            drawTiles();
-        }
-    } else {
-        selectedIndex = currentIndex;
-        drawTiles();
-    }
-}
-
 function drawTiles(){
     boardPikachu.innerHTML = "";
     boardPikachu.style.gridTemplateColumns = `repeat(${cols}, 30px)`;
@@ -86,6 +58,11 @@ function drawTiles(){
             const img = document.createElement("img");
             img.src = `assets/${value}.png`;
             tile.appendChild(img);
+
+            if(currentLevel === 2  && frozenTiles[i]){
+                tile.classList.add("frozen");
+            }
+
             if (i === selectedIndex){
                 tile.classList.add("active");
             }
@@ -93,6 +70,37 @@ function drawTiles(){
             tile.addEventListener("click", () => handleTileClick(tile, i));
         }
         boardPikachu.appendChild(tile);
+    }
+}
+
+function handleTileClick(currentTile, currentIndex){
+    if(selectedIndex === null){
+        selectedIndex = currentIndex;
+        currentTile.classList.add("active");
+        return;
+    }
+    const firstIndex = selectedIndex;
+    if(tilesInput[firstIndex] === tilesInput[currentIndex]){
+        if(canRemove(firstIndex, currentIndex)){
+            tilesInput[firstIndex] =0;
+            tilesInput[currentIndex] = 0;
+
+            if(currentLevel === 2){
+                unFreezeLogic(firstIndex);
+                unFreezeLogic(currentIndex);
+            }
+
+            selectedIndex = null;
+            score +=5;
+            currentScore();
+            drawTiles();
+        } else {
+            selectedIndex = currentIndex;
+            drawTiles();
+        }
+    } else {
+        selectedIndex = currentIndex;
+        drawTiles();
     }
 }
 
@@ -146,8 +154,18 @@ function restartGame() {
     score = 0;
     currentScore();
     startCounting();
+    if(currentLevel === 2){
+        logicLevel2();
+    }
     tilesInput = genTiles();
     drawTiles();
+}
+
+if (levelId){
+    levelId.addEventListener("change", (e) => {
+        currentLevel = parseInt(e.target.value);
+        restartGame();
+    });
 }
 
 function getTileValue(r, c){

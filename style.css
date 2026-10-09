@@ -54,6 +54,7 @@ select{
 }
 
 .main_board{
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -95,4 +96,11 @@ select{
     width: 80%;
     height: 80%;
     object-fit: contain;
+}
+
+.tile.frozen{
+    background-color: #6AB5FF;
+    opacity: 0.7;
+    pointer-events: none;
+    z-index: 99;
 }
