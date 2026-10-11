@@ -102,5 +102,14 @@ select{
     background-color: #6AB5FF;
     opacity: 0.7;
     pointer-events: none;
-    z-index: 99;
+}
+
+.tile.hidden{
+    background-color: #FFCE9A;
+    opacity: 1;
+    pointer-events: none;
+}
+
+.tile.hidden img{
+    display: none;
 }

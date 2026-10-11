@@ -61,6 +61,8 @@ function drawTiles(){
 
             if(currentLevel === 2  && frozenTiles[i]){
                 tile.classList.add("frozen");
+            } else if(currentLevel === 3  && hiddenTiles[i]){
+                tile.classList.add("hidden");
             }
 
             if (i === selectedIndex){
@@ -74,6 +76,9 @@ function drawTiles(){
 }
 
 function handleTileClick(currentTile, currentIndex){
+    if (currentIndex === selectedIndex) {
+        return;
+    }
     if(selectedIndex === null){
         selectedIndex = currentIndex;
         currentTile.classList.add("active");
@@ -88,6 +93,9 @@ function handleTileClick(currentTile, currentIndex){
             if(currentLevel === 2){
                 unFreezeLogic(firstIndex);
                 unFreezeLogic(currentIndex);
+            } else if(currentLevel === 3){
+                unHiddenLogic(firstIndex);
+                unHiddenLogic(currentIndex);
             }
 
             selectedIndex = null;
@@ -156,6 +164,8 @@ function restartGame() {
     startCounting();
     if(currentLevel === 2){
         logicLevel2();
+    } else if(currentLevel === 3){
+        logicLevel3();
     }
     tilesInput = genTiles();
     drawTiles();
