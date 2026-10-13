@@ -113,3 +113,8 @@ select{
 .tile.hidden img{
     display: none;
 }
+
+.tile.marked{
+    background-color: #FFD8A6;
+    pointer-events: none;
+}
