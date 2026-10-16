@@ -38,19 +38,19 @@ function genTiles(){
     return board;
 }
 
-function drawTiles(){
+function drawTiles() {
     boardPikachu.innerHTML = "";
     boardPikachu.style.gridTemplateColumns = `repeat(${cols}, 30px)`;
-    for (let i=0; i < paddingRows * paddingCols; i++){
+    for (let i = 0; i < paddingRows * paddingCols; i++) {
         const r = Math.floor(i / paddingCols);
         const c = i % paddingCols;
-        if (r === 0 || r === paddingRows -1 || c ===0 || c === paddingCols -1){
+        if (r === 0 || r === paddingRows - 1 || c === 0 || c === paddingCols - 1) {
             continue;
         }
         const value = tilesInput[i];
         const tile = document.createElement("div");
         tile.classList.add("tile");
-        if (value ===0) {
+        if (value === 0) {
             tile.classList.add("empty");
         } else {
             tile.dataset.type = value;
@@ -59,15 +59,21 @@ function drawTiles(){
             img.src = `assets/${value}.png`;
             tile.appendChild(img);
 
-            if(currentLevel === 2  && frozenTiles[i]){
+            if (currentLevel === 2 && frozenTiles[i]) {
                 tile.classList.add("frozen");
-            } else if(currentLevel === 3  && hiddenTiles[i]){
+            } else if (currentLevel === 3 && hiddenTiles[i]) {
                 tile.classList.add("hidden");
-            } else if(currentLevel === 4  && markedTiles[i]){
-                tile.classList.add("marked");
+            } else if (currentLevel === 4 && markedTiles[i]) {
+                if (markedTiles[i] === 1){
+                    tile.classList.add("marked_1");
+                } else if (markedTiles[i] === 2) {
+                    tile.classList.add("marked_2");
+                }
+            } else if (currentLevel === 5 && lockedTiles[i]) {
+                tile.classList.add("locked");
             }
 
-            if (i === selectedIndex){
+            if (i === selectedIndex) {
                 tile.classList.add("active");
             }
 
@@ -84,6 +90,9 @@ function handleTileClick(currentTile, currentIndex){
     if(selectedIndex === null){
         selectedIndex = currentIndex;
         currentTile.classList.add("active");
+        if(currentLevel === 5){
+            lockedTilesLogic(currentIndex);
+        }
         return;
     }
     const firstIndex = selectedIndex;
@@ -100,6 +109,16 @@ function handleTileClick(currentTile, currentIndex){
                 unHiddenLogic(currentIndex);
             } else if(currentLevel === 4){
                 markTilesLogic(firstIndex, currentIndex);
+            } else if(currentLevel === 5){
+                if (lockedTiles){
+                    lockedTiles.fill(false);
+                }
+                if(lockTimer){
+                    clearTimeout(lockTimer)
+                    lockTimer = null;
+                }
+                lockCooldown = false;
+                lastLockType = null;
             }
 
             selectedIndex = null;
@@ -172,6 +191,8 @@ function restartGame() {
         logicLevel3();
     } else if(currentLevel === 4){
         logicLevel4();
+    } else if(currentLevel === 5){
+        logicLevel5();
     }
     tilesInput = genTiles();
     drawTiles();
