@@ -114,7 +114,22 @@ select{
     display: none;
 }
 
-.tile.marked{
+.tile.marked_1{
     background-color: #FFD8A6;
+    pointer-events: none;
+}
+
+.tile.marked_2{
+    background-color: #FFCE9A;
+    opacity: 1;
+    pointer-events: none;
+}
+
+.tile.marked_2 img{
+    display: none;
+}
+
+.tile.locked{
+    background-color: #FFCF85;
     pointer-events: none;
 }
