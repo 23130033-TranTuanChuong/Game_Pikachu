@@ -2,13 +2,15 @@
     margin: 0;
     padding: 0;
 }
+
 .main{
     margin: 0 auto;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    height: 470px;
+    width: 100%;
+    height: 100vh;
     background-color: #FFEFBA;
 }
 
@@ -20,13 +22,13 @@
 
 .header_option{
     display: flex;
-    gap: 10px;
-    margin: 10px;
+    gap: 5px;
+    margin: 7px;
 }
 
 #title{
     color: #FFB04B;
-    font-size: 20px;
+    font-size: 17px;
     font-weight: 600;
     display: flex;
     justify-content: center;
@@ -42,7 +44,6 @@ select{
     background-color: #FFD36A;
     border-radius: 3px;
     border: none;
-    margin-top: -2px;
 }
 
 #shuffle_bt{
@@ -50,7 +51,6 @@ select{
     background-color: #FFD36A;
     border-radius: 3px;
     border: none;
-    margin-top: -2px;
 }
 
 .main_board{
@@ -58,7 +58,7 @@ select{
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 20px 0;
+    padding: 0;
 }
 
 #board{
@@ -96,6 +96,28 @@ select{
     width: 80%;
     height: 80%;
     object-fit: contain;
+}
+
+#board.result_display{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 480px;
+    height: 285px;
+}
+
+.display_win{
+    font-size: 25px;
+    font-weight: bold;
+    text-align: center;
+    color: #FFB432;
+}
+
+.display_loss{
+    font-size: 25px;
+    font-weight: bold;
+    text-align: center;
+    color: #8E403A;
 }
 
 .tile.frozen{
