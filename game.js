@@ -8,11 +8,13 @@ let selectedIndex= null;
 const num_types = 21;
 let score = 0;
 let total_time;
+let numberShuffle = 0;
 let time_counting = null;
 let currentLevel =1;
 const levelId = document.getElementById("level_option");
 const scoreId = document.getElementById("score");
 const timeId = document.getElementById("time_left");
+const music = document.getElementById("bgMusic");
 const boardPikachu = document.getElementById('board');
 
 function genTiles(){
@@ -40,7 +42,7 @@ function genTiles(){
 
 function drawTiles() {
     boardPikachu.innerHTML = "";
-    boardPikachu.classList.remove("result_display")
+    boardPikachu.classList.remove("result_display", "start_mode");
     boardPikachu.style.gridTemplateColumns = `repeat(${cols}, 30px)`;
     for (let i = 0; i < paddingRows * paddingCols; i++) {
         const r = Math.floor(i / paddingCols);
@@ -56,22 +58,22 @@ function drawTiles() {
         } else {
             tile.dataset.type = value;
             tile.dataset.index = i;
-            const img = document.createElement("img");
-            img.src = `assets/${value}.png`;
-            tile.appendChild(img);
+            tile.style.backgroundImage = `url('img/${value}.png')`;
 
             if (currentLevel === 2 && frozenTiles[i]) {
                 tile.classList.add("frozen");
             } else if (currentLevel === 3 && hiddenTiles[i]) {
                 tile.classList.add("hidden");
-            } else if (currentLevel === 4 && markedTiles[i]) {
+            } else if (currentLevel === 4 && lockedTiles[i]) {
+                tile.classList.add("locked");
+            } else if (currentLevel === 5 && markedTiles[i]) {
                 if (markedTiles[i] === 1){
                     tile.classList.add("marked_1");
                 } else if (markedTiles[i] === 2) {
                     tile.classList.add("marked_2");
                 }
-            } else if (currentLevel === 5 && lockedTiles[i]) {
-                tile.classList.add("locked");
+            } else if (currentLevel === 6 && curseTiles[i]) {
+                tile.classList.add("curse");
             }
 
             if (i === selectedIndex) {
@@ -91,7 +93,7 @@ function handleTileClick(currentTile, currentIndex){
     if(selectedIndex === null){
         selectedIndex = currentIndex;
         currentTile.classList.add("active");
-        if(currentLevel === 5){
+        if(currentLevel === 4){
             lockedTilesLogic(currentIndex);
         }
         return;
@@ -108,25 +110,17 @@ function handleTileClick(currentTile, currentIndex){
             } else if(currentLevel === 3){
                 unHiddenLogic(firstIndex);
                 unHiddenLogic(currentIndex);
-            } else if(currentLevel === 4){
-                markTilesLogic(firstIndex, currentIndex);
             } else if(currentLevel === 5){
-                if (lockedTiles){
-                    lockedTiles.fill(false);
-                }
-                if(lockTimer){
-                    clearTimeout(lockTimer)
-                    lockTimer = null;
-                }
-                lockCooldown = false;
-                lastLockType = null;
+                markTilesLogic(firstIndex, currentIndex);
             }
 
             selectedIndex = null;
             score +=5;
             currentScore();
             if (checkWin()){
-                showGameResult(`You Win! Your score: ${score}`, true);
+                showGameResult(`You Win! Your score: ${score}<br>Shuffle used: ${numberShuffle}`, true);
+                music.pause();
+                music.currentTime = 0;
                 return;
             }
             drawTiles();
@@ -160,12 +154,17 @@ function startCounting(){
         total_time--;
         currentTime();
         if(total_time <= 0){
-            showGameResult(`You loss! Out of time. Your score: ${score}`, false)
+            showGameResult(`You lost! Out of time. Your score: ${score}<br>Shuffle used: ${numberShuffle}`, false);
+            music.pause();
+            music.currentTime = 0;
         }
     }, 1000)
 }
 
 function shuffleGame(){
+    total_time -=20;
+    currentTime();
+    numberShuffle++;
     let shuffleIndex= [];
     let shuffleValue = [];
     for (let i = 0; i < tilesInput.length; i++) {
@@ -189,21 +188,10 @@ function shuffleGame(){
 }
 
 function restartGame() {
-    selectedIndex = null;
-    score = 0;
-    currentScore();
-    startCounting();
-    if(currentLevel === 2){
-        logicLevel2();
-    } else if(currentLevel === 3){
-        logicLevel3();
-    } else if(currentLevel === 4){
-        logicLevel4();
-    } else if(currentLevel === 5){
-        logicLevel5();
-    }
-    tilesInput = genTiles();
-    drawTiles();
+    numberShuffle = 0;
+    music.pause();
+    music.currentTime = 0;
+    showGameResult("Choose your level and press Start", false, true)
 }
 
 if (levelId){
@@ -290,21 +278,53 @@ restartBt.addEventListener('click', restartGame);
 const shuffleBt = document.getElementById('shuffle_bt');
 shuffleBt.addEventListener('click', shuffleGame);
 
-function showGameResult(text, win){
+function showGameResult(text, win, start = false){
     if(time_counting){
         clearInterval(time_counting);
         time_counting = null;
     }
     boardPikachu.innerHTML = "";
     boardPikachu.classList.add("result_display");
-    const resultText = document.createElement("p");
-    resultText.innerText = text;
-    if(win){
-        resultText.classList.add("display_win");
+    if(start){
+        boardPikachu.classList.add("start_mode");
+        const titleDiv = document.createElement("div");
+        titleDiv.id = "title";
+        titleDiv.innerText = "PIKACHU CONNECT";
+        boardPikachu.appendChild(titleDiv);
     } else {
-        resultText.classList.add("display_loss");
+        boardPikachu.classList.remove("start_mode");
+    }
+    const resultText = document.createElement("p");
+    resultText.innerHTML = text;
+    if(!start){
+        if(win){
+            resultText.classList.add("display_win");
+        } else {
+            resultText.classList.add("display_loss");
+        }
     }
     boardPikachu.appendChild(resultText);
+    if(start){
+        const startBt = document.createElement("button");
+        startBt.innerText = "Start";
+        startBt.classList.add("bt_start");
+        startBt.onclick = () => {
+            boardPikachu.classList.remove("result_display", "start_mode");
+            tilesInput = genTiles();
+            score = 0;
+            currentScore();
+            startCounting();
+            music.play();
+            if (currentLevel === 2) logicLevel2();
+            else if (currentLevel === 3) logicLevel3();
+            else if (currentLevel === 4) logicLevel4();
+            else if (currentLevel === 5) logicLevel5();
+            else if (currentLevel === 6) logicLevel6();
+
+            drawTiles();
+        }
+        boardPikachu.appendChild(startBt);
+    }
 }
 
 function checkWin(){
@@ -458,16 +478,78 @@ function unHiddenLogic(index){
 }
 
 //level4
+let lockedTiles = [];
+let lockTimer = null;
+let lockCooldown = false;
+let lastLockType = null;
+
+function logicLevel4() {
+    lockedTiles = new Array(paddingRows*paddingCols).fill(false);
+    lockCooldown = false;
+    lastLockType = null;
+    if (lockCooldown) {
+        clearTimeout(lockTimer);
+        lockTimer =null;
+    }
+}
+
+function lockedTilesLogic(currentIndex) {
+    if (lockCooldown){
+        return;
+    }
+    if(!lockedTiles || lockedTiles.length === 0){
+        lockedTiles = new Array(paddingRows*paddingCols).fill(false);
+    }
+    const targetType = tilesInput[currentIndex];
+    if (targetType === 0 || targetType === lastLockType) {
+        return;
+    }
+    lockedTiles[currentIndex] = true;
+    let hasLocked = true;
+    for (let i = 0; i < tilesInput.length; i++) {
+        const r = Math.floor(i / paddingCols);
+        const c = i % paddingCols;
+        if(r === 0 || r === paddingRows-1 || c === 0 || c === paddingCols-1){
+            continue;
+        }
+        if(i !== currentIndex && tilesInput[i] === targetType){
+            if (canRemove(currentIndex, i)){
+                lockedTiles[i] = true;
+                hasLocked = true;
+            }
+        }
+    }
+
+    if(hasLocked){
+        lastLockType = targetType;
+        lockCooldown = true;
+        setTimeout(() => {
+            lockCooldown = false;
+        }, 10000);
+        if(lockTimer){
+            clearTimeout(lockTimer);
+        }
+        lockTimer = setTimeout(() => {
+            if (currentLevel === 4){
+                lockedTiles.fill(false);
+                drawTiles();
+            }
+        }, 15000);
+        drawTiles();
+    }
+}
+
+//level5
 let markedTiles = [];
 let markedTimer = null;
 
-function logicLevel4() {
+function logicLevel5() {
     markedTiles = new Array(paddingRows*paddingCols).fill(0);
     if(markedTimer){
         clearInterval(markedTimer);
     }
     markedTimer = setInterval(() => {
-        if(currentLevel !==4){
+        if(currentLevel !==5){
             return;
         }
         let hasMarked = false;
@@ -525,63 +607,92 @@ function markTilesLogic(i1, i2){
     }
 }
 
-//level5
-let lockedTiles = [];
-let lockTimer = null;
-let lockCooldown = false;
-let lastLockType = null;
+//level6
+let curseTiles = [];
+let curseTimer = null;
 
-function logicLevel5() {
-    lockedTiles = new Array(paddingRows*paddingCols).fill(false);
-    lockCooldown = false;
-    lastLockType = null;
-    if (lockCooldown) {
-        clearTimeout(lockTimer);
-        lockTimer =null;
-    }
-}
-
-function lockedTilesLogic(currentIndex) {
-    if (lockCooldown){
-        return;
-    }
-    if(!lockedTiles || lockedTiles.length === 0){
-        lockedTiles = new Array(paddingRows*paddingCols).fill(false);
-    }
-    const targetType = tilesInput[currentIndex];
-    if (targetType === 0 || targetType === lastLockType) {
-        return;
-    }
-    let hasLocked = false;
-    for (let i = 0; i < tilesInput.length; i++) {
-        const r = Math.floor(i / paddingCols);
-        const c = i % paddingCols;
-        if(r === 0 || r === paddingRows-1 || c === 0 || c === paddingCols-1){
-            continue;
+function logicLevel6() {
+    curseTiles = new Array(paddingRows*paddingCols).fill(false);
+    let validTiles = [];
+    for (let i=0; i<tilesInput.length; i++){
+        if (tilesInput[i] !== 0){
+            validTiles.push(i);
         }
-        if(i !== currentIndex && tilesInput[i] === targetType){
-            if (canRemove(currentIndex, i)){
-                lockedTiles[i] = true;
-                hasLocked = true;
+    }
+    validTiles.sort(() => Math.random() - 0.5);
+    let initialCount = 2;
+    if (validTiles.length < 2){
+        initialCount = validTiles.length;
+    }
+    for (let i=0; i<initialCount; i++){
+        curseTiles[validTiles[i]] = true;
+    }
+    if(curseTimer){
+        clearInterval(curseTimer);
+    }
+    curseTimer = setInterval(() => {
+        if(currentLevel !==6){
+            return;
+        }
+        let arrSpread = new Array(paddingRows*paddingCols).fill(false);
+        for (let i=0; i<curseTiles.length; i++){
+            arrSpread[i] = curseTiles[i];
+        }
+        for (let i=0; i<tilesInput.length; i++){
+            if (tilesInput[i] !== 0 && curseTiles[i]){
+                const r = Math.floor(i / paddingCols);
+                const c = i % paddingCols;
+                const nearby = [
+                    r*paddingCols+(c+1)
+                ];
+                for (let j=0; j<nearby.length; j++){
+                    const nIndex = nearby[j];
+                    if(nIndex >= 0 && nIndex < tilesInput.length ){
+                        if (tilesInput[nIndex] !== 0 && !curseTiles[nIndex]){
+                            arrSpread[nIndex] = true;
+                        }
+                    }
+                }
             }
         }
-    }
-
-    if(hasLocked){
-        lastLockType = targetType;
-        lockCooldown = true;
-        setTimeout(() => {
-            lockCooldown = false;
-        }, 10000);
-        if(lockTimer){
-            clearTimeout(lockTimer);
+        for (let i=0; i<curseTiles.length; i++){
+            curseTiles[i] = arrSpread[i];
         }
-        lockTimer = setTimeout(() => {
-            if (currentLevel === 5){
-                lockedTiles.fill(false);
-                drawTiles();
+        let totalCurse = 0;
+        let totalNormal = 0;
+        for (let i=0; i<tilesInput.length; i++){
+            if (tilesInput[i] !== 0){
+                if (curseTiles[i]){
+                    totalCurse++;
+                } else {
+                    totalNormal++;
+                }
             }
-        }, 15000);
+        }
+        if(totalCurse < totalNormal){
+            let spawnTiles = [];
+            for (let i=0; i<tilesInput.length; i++){
+                if(tilesInput[i] !== 0  && !curseTiles[i]){
+                    spawnTiles.push(i);
+                }
+            }
+            if(spawnTiles.length > 0){
+                spawnTiles.sort(() => Math.random() - 0.5);
+                let numberSpawn = 2;
+                if(spawnTiles.length < 2){
+                    numberSpawn = spawnTiles.length;
+                }
+                for (let i=0; i<numberSpawn; i++){
+                    curseTiles[spawnTiles[i]] = true;
+                }
+            }
+        }
+        if(totalCurse >= totalNormal * 0.8){
+            showGameResult(`You lost due to Curse Tiles! Your score: ${score}<br>Shuffle used: ${numberShuffle}`, false);
+            music.pause();
+            music.currentTime = 0;
+            return;
+        }
         drawTiles();
-    }
+    }, 20000)
 }
