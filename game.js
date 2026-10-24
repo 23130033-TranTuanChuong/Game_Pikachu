@@ -14,6 +14,8 @@ let currentLevel =1;
 const levelId = document.getElementById("level_option");
 const scoreId = document.getElementById("score");
 const timeId = document.getElementById("time_left");
+const restartBt = document.getElementById('restart_bt');
+const shuffleBt = document.getElementById('shuffle_bt');
 const music = document.getElementById("bgMusic");
 const boardPikachu = document.getElementById('board');
 
@@ -214,7 +216,9 @@ function checkLine(r1, c1, r2, c2){
         const minC= Math.min(c1, c2);
         const maxC= Math.max(c1, c2);
         for(let i= minC+1; i < maxC; i++){
-            if(getTileValue(r1, i) !== 0){ return false; }
+            if(getTileValue(r1, i) !== 0){
+                return false;
+            }
         }
         return true;
     }
@@ -222,7 +226,9 @@ function checkLine(r1, c1, r2, c2){
         const minR = Math.min(r1, r2);
         const maxR = Math.max(r1, r2);
         for(let i= minR+1; i < maxR; i++){
-            if(getTileValue(i, c1) !== 0){ return false; }
+            if(getTileValue(i, c1) !== 0){
+                return false;
+            }
         }
         return true;
     }
@@ -272,10 +278,7 @@ function canRemove(i1, i2){
     return false;
 }
 
-const restartBt = document.getElementById('restart_bt');
 restartBt.addEventListener('click', restartGame);
-
-const shuffleBt = document.getElementById('shuffle_bt');
 shuffleBt.addEventListener('click', shuffleGame);
 
 function showGameResult(text, win, start = false){
@@ -569,7 +572,7 @@ function logicLevel5() {
             }
             drawTiles();
         }
-    }, 30000);
+    }, 20000);
 }
 
 function markTilesLogic(i1, i2){
@@ -687,12 +690,12 @@ function logicLevel6() {
                 }
             }
         }
-        if(totalCurse >= totalNormal * 0.8){
+        if(totalCurse >= totalNormal * 0.8 && totalNormal>0){
             showGameResult(`You lost due to Curse Tiles! Your score: ${score}<br>Shuffle used: ${numberShuffle}`, false);
             music.pause();
             music.currentTime = 0;
             return;
         }
         drawTiles();
-    }, 20000)
+    }, 15000)
 }
